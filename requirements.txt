@@ -1,0 +1,23 @@
+# Core image I/O and S3
+boto3
+opencv-python
+numpy
+Pillow
+tqdm
+
+# Haze / smoke synthesis
+torch
+torchvision
+noise          # Perlin noise (synthesize_smoke_layer.py)
+numba          # JIT-accelerated path-blur kernel
+
+# Hugging Face upload pipeline
+huggingface_hub
+hf_transfer
+webdataset
+
+# Marigold depth generation (scripts/run_marigold_on_s3.py)
+# Additional deps from third_party/Marigold/requirements.txt must also be installed.
+diffusers
+transformers
+accelerate

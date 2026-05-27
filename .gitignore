@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Virtualenvs
+venv*/
+.venv/
+env/
+
+# Local data and staging
+staging/
+shards/
+/tmp/
+*.tar
+*.tar.gz
+
+# Vendored upstream code (cloned by the user)
+third_party/Marigold/
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
