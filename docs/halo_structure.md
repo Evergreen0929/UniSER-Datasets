@@ -129,27 +129,6 @@ Per-scene counts:
 
 The `_4K/` parent directory in each `*_image_key` encodes the source HDRI slug (e.g. `versveldpas`, `kiara-4-mid-morning`) — these match canonical Poly Haven / freepoly.org asset names.
 
-## Sanitization mapping
-
-A small number of 3D-asset names contained real-person romanizations or commercial-brand tokens. These were swapped for generic codes via [`scripts/apply_release_rename.py`](../scripts/apply_release_rename.py); the mapping ships alongside the dataset as `release_rename_map.json` for transparency.
-
-| Sanitized token | Replaces | Count of affected finalist records |
-|---|---|---:|
-| `char01` | `HongChengHong` | 6 |
-| `char02` | `HuangKangHua` | 10 |
-| `char03` | `HuangXinYin` | 8 |
-| `char04` | `LiuLiSha` | 3 |
-| `char05` | `LiuXiaoXiao` | 2 |
-| `char06` | `HuangD` | 2 |
-| `char07` | `LiuCJ` | 2 |
-| `char08` | `Jennt` | 5 |
-| `char09` | `Lilya` | 4 |
-| `char10` | `HuMS` | 4 |
-| `char11` | `HuSQ` | 11 |
-| `MouseBlack` | `MouseThermaltakeBlack` | 5 |
-
-The substitution is a strict string replacement — every other path component (Scene id, effect, camera, HDRI slug) is untouched. Resulting paths remain unique across the 4945-record finalist.
-
 ## License
 
 HALO is released under **CC-BY-NC-SA-4.0**. Upstream HDRI environments retain their original licenses (Poly Haven CC0; freepoly.org terms) — both equal to or more permissive than the bundled license.

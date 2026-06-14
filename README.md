@@ -177,7 +177,7 @@ for sample in pipeline:
 python scripts/make_haze_gallery.py --total 60 --out-dir /tmp/haze_preview
 
 # HALO — triplet view with light / flare / separate side-by-side
-python scripts/build_halo_gallery.py --total 60 --out-dir /tmp/halo_preview
+python scripts/make_halo_gallery.py --total 60 --out-dir /tmp/halo_preview
 
 python3 -m http.server --directory /tmp/haze_preview 8000   # then 8001 for halo
 ```
@@ -193,44 +193,14 @@ python3 -m http.server --directory /tmp/haze_preview 8000   # then 8001 for halo
 ├── docs/
 │   ├── dataset_structure.md      haze shard layout + sample fields
 │   ├── halo_structure.md         HALO shard layout + per-scene table
-│   ├── depth_generation.md       Marigold setup for haze synthesis
 │   └── upstream_licenses.md      per-haze-source license details
 ├── examples/
-│   └── load_dataset.py           end-to-end preview-grid example
-├── scripts/
-│   ├── synthesize_haze.py        core haze renderer (atmospheric model)
-│   ├── synthesize_smoke_layer.py non-uniform smoke generator
-│   ├── run_marigold_depth.py     Marigold depth inference helper
-│   ├── prepare_ots_originals.py  fetch RESIDE-OTS clean images
-│   ├── pack_shards.py            assemble haze shards from S3
-│   ├── pack_halo.py              assemble HALO shards from local 4K renders
-│   ├── apply_release_rename.py   HALO asset-name sanitization (transparent mapping)
-│   ├── make_haze_gallery.py      haze preview gallery builder
-│   ├── build_halo_gallery.py     HALO preview gallery builder
-│   ├── halo_sample_and_view.py   HALO sub-sampler + side-by-side viewer
-│   ├── dedupe_shards.py          post-pack shard deduplication
-│   └── upload_hf.py              resumable HF upload wrapper
-└── eval/
-    └── run_lmm_evaluation.py     evaluation harness (see paper)
+│   └── load_dataset.py           end-to-end haze loader example
+└── scripts/
+    ├── make_haze_gallery.py      stream haze shards from HF and render preview
+    ├── make_halo_gallery.py      stream HALO shards from HF and render triplet preview
+    └── prepare_ots_originals.py  fetch RESIDE-OTS clean images (not redistributed)
 ```
-
----
-
-## 🛠️ Reproducing the synthesis
-
-You only need this if you want to **rebuild a dataset** with different source images or rendering parameters — most users should just stream from Hugging Face.
-
-### Haze synthesis
-
-The core renderer ([`scripts/synthesize_haze.py`](scripts/synthesize_haze.py)) implements the physically-motivated atmospheric model from §7 of the paper:
-
-$$I_\text{out} = I_\text{in} \cdot T + A \cdot \omega_0 \kappa \cdot (1 - T^\eta), \quad T = e^{-\tau}$$
-
-with optional Perlin-noise modulation of optical thickness $\tau$ for non-uniform haze and valley fog. See [`docs/depth_generation.md`](docs/depth_generation.md) for the Marigold depth pipeline that feeds the renderer.
-
-### HALO shard packing
-
-[`scripts/pack_halo.py`](scripts/pack_halo.py) packs the 4945-sample finalist into WebDataset shards. [`scripts/apply_release_rename.py`](scripts/apply_release_rename.py) performs token-level sanitization on the finalist's path strings so no real-person or commercial-brand asset names leak into the shipped shards; the mapping is included in the release as `release_rename_map.json` for transparency.
 
 ---
 
