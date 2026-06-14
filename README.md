@@ -1,26 +1,32 @@
-# UniSER: A Foundation Model for Unified Soft Effects Removal 🌫️ [ *CVPR 2026* ]
+# UniSER-Datasets 🌫️✨
 
 [![arXiv](https://img.shields.io/badge/arXiv-2511.14183-b31b1b.svg)](https://arxiv.org/abs/2511.14183)
-[![🤗 Dataset](https://img.shields.io/badge/🤗-Dataset-yellow)](https://huggingface.co/datasets/jdzhang0929/uniser-haze-dataset)
+[![🤗 Haze Dataset](https://img.shields.io/badge/🤗-Haze-yellow)](https://huggingface.co/datasets/jdzhang0929/uniser-haze-dataset)
+[![🤗 HALO Dataset](https://img.shields.io/badge/🤗-HALO-yellow)](https://huggingface.co/datasets/jdzhang0929/halo-flare-dataset)
 [![License](https://img.shields.io/badge/License-CC--BY--NC--SA--4.0-blue.svg)](LICENSE)
 
+Companion **dataset releases** for our CVPR 2026 paper, *UniSER: A Foundation Model for Unified Soft Effects Removal* — covering large-scale synthetic haze and 3D-rendered lens flare.
+
 <p align="center">
-  <img alt="UniSER teaser" src="assets/teaser.jpg" width="900">
+  <img alt="UniSER dataset samples" src="assets/vis_dataset.jpg" width="900">
 </p>
 
-## 📜 Introduction
+## 📦 What's in the release
 
-This repository releases the **synthetic haze dataset** from our CVPR 2026 paper, *UniSER: A Foundation Model for Unified Soft Effects Removal*. The dataset bundles ~80k unique clean images with ~2 million physically-motivated haze / fog / smoke renderings — covering homogeneous, non-homogeneous, indoor, outdoor, daytime, and dense atmospheric conditions — for training and benchmarking single-image dehazing.
+Two datasets ship to Hugging Face. Both are sharded in [WebDataset](https://github.com/webdataset/webdataset) format with `~2 GB` shards for fast streaming and partial-download support.
 
-> Jingdong Zhang, Lingzhi Zhang, Qing Liu, Mang Tik Chiu, Connelly Barnes, Yizhou Wang, Haoran You, Xiaoyang Liu, Yuqian Zhou, Zhe Lin, Eli Shechtman, Sohrab Amirghodsi, Xin Li, Wenping Wang, Xiaohang Zhan
->
-> CVPR 2026
+| Dataset | 🤗 Repo | Samples | Total size | Format |
+|---|---|---:|---:|---|
+| **Synthetic Haze** | [`jdzhang0929/uniser-haze-dataset`](https://huggingface.co/datasets/jdzhang0929/uniser-haze-dataset) | ~80.9k clean GTs / ~2M haze variants | ~2.5 TB | 1,327 WebDataset shards |
+| **HALO Lens Flare** | [`jdzhang0929/halo-flare-dataset`](https://huggingface.co/datasets/jdzhang0929/halo-flare-dataset) | 4,945 triplets (light / flare / separate) | ~153 GB | 71 WebDataset shards |
 
-🤗 **[`jdzhang0929/uniser-haze-dataset`](https://huggingface.co/datasets/jdzhang0929/uniser-haze-dataset)** — full release on Hugging Face (~2.5 TB, gated).
+Both releases are **gated** (auto-approval) under **CC-BY-NC-SA-4.0** for non-commercial academic research. Click through on each HF page to accept the terms.
 
-## 📦 Dataset Composition
+---
 
-Six upstream sources, augmented with a physically-motivated atmospheric rendering on Marigold-predicted depth. HALO_QING (3D-rendered flare scenes) is excluded from the public release.
+## 🌫️ Synthetic Haze Dataset
+
+Six upstream image sources augmented with a physically-motivated atmospheric rendering on Marigold-predicted depth — covering homogeneous, non-homogeneous, indoor, outdoor, daytime, and dense haze.
 
 | Source | Unique GTs | Haze variants / image | GT shipped? |
 |---|---:|---:|:---:|
@@ -32,9 +38,43 @@ Six upstream sources, augmented with a physically-motivated atmospheric renderin
 | ISTD | 135 | 24 | ✅ |
 | **Total** | **~80.9k** | varied | — |
 
-<p align="center">
-  <img alt="UniSER haze dataset samples" src="assets/vis_dataset.jpg" width="900">
-</p>
+**Per-sample layout** inside a haze shard:
+```
+<source>/<base_name>.gt.<ext>           clean GT (absent for OTS)
+<source>/<base_name>.haze_NNN.png       synthesized haze variant
+<source>/<base_name>.haze_NNN.txt       descriptive tag (e.g. out_fog_120)
+<source>/<base_name>.json               per-sample metadata
+```
+
+> **Note**: RESIDE-OTS clean images are not bundled because they carry third-party photographer copyrights. After downloading, run [`scripts/prepare_ots_originals.py`](scripts/prepare_ots_originals.py) to fetch them from the official RESIDE source.
+
+---
+
+## ✨ HALO Synthetic Lens-Flare Dataset
+
+3D-rendered lens-flare dataset: 4,945 4K-resolution samples spanning **32 scenes** × **4 flare types**, each sample shipping as a clean / flared / flare-only triplet. Suitable for paired flare-removal training as well as additive decomposition (`flare = light + separate`).
+
+| Effect type | Count | Description |
+|---|---:|---|
+| **Streak** | 1,656 | bright streak / anamorphic stretch flares |
+| **Reflective** | 1,655 | inter-element ghost reflections |
+| **Glare** | 817 | wide soft halo + bloom |
+| **Shimmer** | 817 | iridescent / dispersive flare |
+| **Total** | **4,945** | |
+
+**Per-sample layout** inside a HALO shard:
+```
+halo/<base_name>.gt.png         clean scene without flare         (RGBA, 3840×2160)
+halo/<base_name>.flare.png      same scene with flare added       (RGBA, 3840×2160)
+halo/<base_name>.separate.png   flare-only on transparent bg      (RGBA, 3840×2160)
+halo/<base_name>.json           per-sample metadata
+```
+
+`base_name` encodes `{scene}_{effect_id}_{camera}` (e.g. `Scene003_Glare001_camera01`).
+
+See [`docs/halo_structure.md`](docs/halo_structure.md) for the full schema and per-scene distribution.
+
+---
 
 ## 🚀 Quick Start
 
@@ -43,13 +83,12 @@ Six upstream sources, augmented with a physically-motivated atmospheric renderin
 ```bash
 pip install -U "huggingface_hub[hf_xet]" webdataset pillow
 hf auth login
-# Then visit and accept the terms at:
+# Then visit and accept the terms at each dataset's HF page:
 #   https://huggingface.co/datasets/jdzhang0929/uniser-haze-dataset
+#   https://huggingface.co/datasets/jdzhang0929/halo-flare-dataset
 ```
 
-### Load the dataset
-
-The dataset is sharded in WebDataset format. Each sample carries a clean GT (except OTS), one or more haze variants, descriptive tags, and metadata.
+### Load the Synthetic Haze dataset
 
 ```python
 import io, json, random
@@ -91,49 +130,130 @@ for sample in pipeline:
     break
 ```
 
-A full example with a preview-grid renderer is at [`examples/load_dataset.py`](examples/load_dataset.py).
+A full example with a preview-grid renderer is in [`examples/load_dataset.py`](examples/load_dataset.py).
 
-### Render a quick preview gallery
+### Load the HALO Lens-Flare dataset
 
-```bash
-python scripts/make_haze_gallery.py --total 60 --out-dir /tmp/preview
-python3 -m http.server --directory /tmp/preview 8000
+```python
+import io, json
+from huggingface_hub import HfFileSystem
+import webdataset as wds
+from PIL import Image
+
+REPO = "jdzhang0929/halo-flare-dataset"
+urls = [
+    f"https://huggingface.co/datasets/{REPO}/resolve/main/{p[len(f'datasets/{REPO}/'):]}"
+    for p in HfFileSystem().ls(f"datasets/{REPO}/shards", detail=False)
+    if p.endswith(".tar")
+]
+
+def decode(s):
+    if "json" not in s:
+        return None
+    meta = json.loads(s["json"])
+    return {
+        "sample_id": meta["sample_id"],
+        "scene":     meta["scene"],
+        "effect":    meta["effect_id"],
+        "light":     Image.open(io.BytesIO(s["gt.png"])).convert("RGB"),
+        "flare":     Image.open(io.BytesIO(s["flare.png"])).convert("RGB"),
+        "separate":  Image.open(io.BytesIO(s["separate.png"])),  # keep RGBA
+    }
+
+pipeline = (wds.WebDataset(urls, shardshuffle=True)
+              .shuffle(500)
+              .map(decode)
+              .select(lambda x: x is not None))
+
+for sample in pipeline:
+    print(sample["sample_id"], sample["scene"], sample["effect"])
+    break
 ```
 
-## ⚠️ Caveats
+### Render quick preview galleries
 
-**RESIDE-OTS clean images are not bundled** because the originals carry third-party photographer copyrights. After downloading the dataset, run [`scripts/prepare_ots_originals.py`](scripts/prepare_ots_originals.py) to fetch them from the official RESIDE source and align them locally by `base_name`.
+```bash
+# Synthetic Haze — 60 samples mixed across sources
+python scripts/make_haze_gallery.py --total 60 --out-dir /tmp/haze_preview
 
-## 📝 TODO
+# HALO — triplet view with light / flare / separate side-by-side
+python scripts/build_halo_gallery.py --total 60 --out-dir /tmp/halo_preview
 
-- ✅ *Nov 17, 2025*: Release arXiv preprint.
-- ✅ *May 27, 2026*: Release synthetic haze dataset on Hugging Face.
-- [ ] Release HALO (3D-rendered lens flare dataset).
-- [ ] Release LR-SRD (Large Real-world Shadow Removal Dataset).
+python3 -m http.server --directory /tmp/haze_preview 8000   # then 8001 for halo
+```
+
+---
+
+## 📁 Repository layout
+
+```
+.
+├── README.md                     ← you are here
+├── assets/                       teaser + vis_dataset graphics
+├── docs/
+│   ├── dataset_structure.md      haze shard layout + sample fields
+│   ├── halo_structure.md         HALO shard layout + per-scene table
+│   ├── depth_generation.md       Marigold setup for haze synthesis
+│   └── upstream_licenses.md      per-haze-source license details
+├── examples/
+│   └── load_dataset.py           end-to-end preview-grid example
+├── scripts/
+│   ├── synthesize_haze.py        core haze renderer (atmospheric model)
+│   ├── synthesize_smoke_layer.py non-uniform smoke generator
+│   ├── run_marigold_depth.py     Marigold depth inference helper
+│   ├── prepare_ots_originals.py  fetch RESIDE-OTS clean images
+│   ├── pack_shards.py            assemble haze shards from S3
+│   ├── pack_halo.py              assemble HALO shards from local 4K renders
+│   ├── apply_release_rename.py   HALO asset-name sanitization (transparent mapping)
+│   ├── make_haze_gallery.py      haze preview gallery builder
+│   ├── build_halo_gallery.py     HALO preview gallery builder
+│   ├── halo_sample_and_view.py   HALO sub-sampler + side-by-side viewer
+│   ├── dedupe_shards.py          post-pack shard deduplication
+│   └── upload_hf.py              resumable HF upload wrapper
+└── eval/
+    └── run_lmm_evaluation.py     evaluation harness (see paper)
+```
+
+---
 
 ## 🛠️ Reproducing the synthesis
 
-You only need this if you want to **rebuild the dataset** with different source images or rendering parameters — most users should just download from Hugging Face. The synthesis pipeline is in [`scripts/`](scripts/); detailed docs:
+You only need this if you want to **rebuild a dataset** with different source images or rendering parameters — most users should just stream from Hugging Face.
 
-- [`docs/depth_generation.md`](docs/depth_generation.md) — Marigold setup and depth inference (`scripts/run_marigold_depth.py`)
-- [`docs/dataset_structure.md`](docs/dataset_structure.md) — shard layout and sample fields
-- [`docs/upstream_licenses.md`](docs/upstream_licenses.md) — per-source license details
+### Haze synthesis
 
 The core renderer ([`scripts/synthesize_haze.py`](scripts/synthesize_haze.py)) implements the physically-motivated atmospheric model from §7 of the paper:
 
 $$I_\text{out} = I_\text{in} \cdot T + A \cdot \omega_0 \kappa \cdot (1 - T^\eta), \quad T = e^{-\tau}$$
 
-with optional Perlin-noise modulation of optical thickness $\tau$ for non-uniform haze and valley fog.
+with optional Perlin-noise modulation of optical thickness $\tau$ for non-uniform haze and valley fog. See [`docs/depth_generation.md`](docs/depth_generation.md) for the Marigold depth pipeline that feeds the renderer.
+
+### HALO shard packing
+
+[`scripts/pack_halo.py`](scripts/pack_halo.py) packs the 4945-sample finalist into WebDataset shards. [`scripts/apply_release_rename.py`](scripts/apply_release_rename.py) performs token-level sanitization on the finalist's path strings so no real-person or commercial-brand asset names leak into the shipped shards; the mapping is included in the release as `release_rename_map.json` for transparency.
+
+---
 
 ## 📜 License
 
 - **Code** in this repository: [MIT](LICENSE).
-- **Bundled dataset** on Hugging Face: CC-BY-NC-SA-4.0 (inherited from the strictest upstream).
-- **Each subset** retains its upstream license; redistribution and use must comply with each.
+- **Bundled haze dataset** on Hugging Face: CC-BY-NC-SA-4.0 (inherited from the strictest upstream — WSRD).
+- **HALO dataset** on Hugging Face: CC-BY-NC-SA-4.0; HDRI environments retain their upstream licenses (Poly Haven CC0; freepoly.org terms).
+- **Each haze subset** retains its own upstream license — redistribution and use must comply with each. See [`docs/upstream_licenses.md`](docs/upstream_licenses.md).
+
+---
+
+## 📝 Roadmap
+
+- ✅ *Nov 17, 2025*: Release arXiv preprint.
+- ✅ *May 27, 2026*: Release synthetic haze dataset on Hugging Face.
+- ✅ *Jun 13, 2026*: Release HALO 3D-rendered lens flare dataset on Hugging Face.
+
+---
 
 ## 📚 Citation
 
-If you find this dataset useful, please cite UniSER:
+If you find these datasets useful, please cite UniSER:
 
 ```bibtex
 @article{zhang2025uniser,
