@@ -1,6 +1,19 @@
-# Hugging Face streaming + WebDataset loaders
+# Hugging Face streaming + WebDataset loaders (for the gallery + loader scripts)
 huggingface_hub[hf_xet]
 webdataset
-
-# Image I/O for the gallery / loader examples
 Pillow
+
+# Haze / smoke synthesis pipeline (synthesize_haze.py, synthesize_smoke_layer.py)
+torch
+torchvision
+opencv-python
+numpy
+noise          # Perlin noise for non-uniform haze + smoke layer
+numba          # JIT-accelerated path-blur kernel
+tqdm
+
+# Marigold depth generation (run_marigold_depth.py + docs/depth_generation.md)
+# Plus the deps in third_party/Marigold/requirements.txt after cloning that repo.
+diffusers
+transformers
+accelerate
